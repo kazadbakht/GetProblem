@@ -3,6 +3,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -36,6 +37,26 @@ public class TestGetMain {
 		final Callee p = (Callee) context.notary().get(testPA);
 		Callable message = () -> p.callee();
 
+		mainSequentialStyle(n, testP, message);
+
+		EX.shutdownNow();
+	}
+
+	private static void mainSequentialStyle(int n, Callee testP, Callable message) {
+		AtomicInteger count = new AtomicInteger(0);
+		for (int i = 0; i < n; ++i) {
+			Future<Integer> f = testP.send(testP, message);
+			try {
+				f.get();
+				count.incrementAndGet();
+			} catch (Exception e) {
+				e.printStackTrace(System.err);
+			}
+		}
+		System.out.println(count);
+	}
+
+	private static void mainJava8Style(int n, Callee testP, Callable message) {
 		// Send all messages at once
 		// Collect the futures
 		List<Future<Integer>> futures = IntStream.range(0, n).mapToObj(i -> message).map(m -> {
@@ -56,7 +77,5 @@ public class TestGetMain {
 			}
 		}).mapToInt(x -> x).sum();
 		System.out.println(success);
-
-		EX.shutdownNow();
 	}
 }

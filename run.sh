@@ -1,6 +1,6 @@
 #!/bin/bash
 
-num=5000000
+num="10000000"
 echo ""
-echo "Running with $num"
+echo "Running with $((num / 1000))K"
 java -Xms1024m -Xmx4096m -jar get-problem.jar $num
